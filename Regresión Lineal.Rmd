@@ -1,0 +1,119 @@
+---
+title: "Regresión lineal sobre el efecto de la TV en niños pequeños"
+author: "Jorge Oduber"
+date: "2023-11-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+Data <- read_excel("C:/Users/USUARIO/OneDrive/Escritorio/TRABAJO PSICOLOGIA DOCTORADO/BASE DE DATOS.xlsx", 
+    sheet = "BASE DE DATOS")
+View(Data)
+```
+
+```{r}
+#Visualizar primeras líneas
+head(Data)
+```
+
+```{r}
+#Visualizar últimas líneas
+tail(Data)
+```
+
+```{r}
+#Estructura de las variables
+str(Data)
+```
+
+```{r}
+# Calcular el promedio de las puntuaciones pretest
+Data$Promedio_Pretest <- rowMeans(Data[, 7:18])
+
+# Ejemplo de diagrama de dispersión
+plot(Data$Age, Data$Promedio_Pretest, xlab = "Edad", ylab = "Promedio_Pretest", main = "Diagrama de Dispersión")
+
+```
+```{r}
+# Matriz de correlación
+cor_matrix <- cor(Data[, c("Age", "Body", "Letters", "Forms", "Promedio_Pretest", "Terms", "Skills")])
+ 
+print(cor_matrix)
+```
+
+```{r}
+#Visualizar la matriz de correlación
+library(corrplot)
+print(corrplot(cor_matrix,method = "color"))
+```
+
+
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+
+# Realizar la regresión lineal con el promedio de las puntuaciones pretest como variable dependiente
+modelo_regresion <- lm(Promedio_Pretest ~ Site + Sex + Age + Frequency + Where + Encourage, data = Data)
+
+# Imprimir resumen del modelo
+summary(modelo_regresion)
+```
+
+
+```{r}
+# Gráfico Q-Q para verificar la normalidad de los residuos
+qqnorm(modelo_regresion$residuals)
+qqline(modelo_regresion$residuals, col = 2)
+
+```
+
+```{r}
+# Prueba de Shapiro-Wilk para verificar la normalidad de los residuos
+shapiro.test(modelo_regresion$residuals)
+
+```
+
+
+
+```{r}
+# Gráfico de dispersión de residuos vs. valores ajustados
+plot(modelo_regresion$fitted.values, modelo_regresion$residuals, xlab = "Valores Ajustados", ylab = "Residuos", main = "Homocedasticidad")
+abline(h = 0, col = "red")
+
+```
+
+```{r}
+# Gráfico de dispersión de residuos vs. variables predictoras
+par(mfrow = c(2, 2))
+plot(modelo_regresion, which = c(1, 2, 3, 5))
+
+```
+
+
+```{r}
+#Gráfico de nube de puntos con recta de regresión
+data(Data)
+p <- ggplot(Data, aes(Promedio_Pretest, Age)) +
+  geom_point()
+p + geom_smooth(method = "lm")
+
+```
+
+
+
+```{r}
+
+# Crear el gráfico de dispersión con todas las variables del modelo
+ggplot(Data, aes(x = Age, y = Promedio_Pretest)) +
+  geom_point(aes(color = Site, shape = Sex)) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Age", y = "Promedio Pretest", color = "Site", shape = "Sex") +
+  theme_minimal()
+
+```
+
+
